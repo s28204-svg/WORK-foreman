@@ -1,208 +1,213 @@
-import React, { useState } from 'react';
-import { Camera, FileText, Save, Trash2, Plus, MapPin, User, Calendar, Cloud } from 'lucide-react';
-
-const InspectionApp = () => {
-  // --- 狀態管理 ---
-  const [projectInfo, setProjectInfo] = useState({
-    projectName: 'B14A05632_機廠轉換軌標誌牌改善案',
-    location: '機廠',
-    recorder: '王大明',
-    contractor: '長德開發工程有限公司',
-    date: new Date().toISOString().split('T')[0],
-    weather: '晴',
-  });
-
-  const [items, setItems] = useState([
-    { id: 1, category: '施作前(正面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '' },
-    { id: 2, category: '施作前(反面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '' },
-    { id: 3, category: '施作前(反面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '' },
-    { id: 4, category: '施作後(反面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '' },
-  ]);
-
-  // --- 功能函數 ---
-  const handlePhotoUpload = (itemId, event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setItems(prevItems => 
-          prevItems.map(item => 
-            item.id === itemId ? { ...item, photo: reader.result } : item
-          )
-        );
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removePhoto = (itemId) => {
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.id === itemId ? { ...item, photo: null } : item
-      )
-    );
-  };
-
-  const updateNote = (itemId, text) => {
-    setItems(prevItems => 
-      prevItems.map(item => 
-        item.id === itemId ? { ...item, note: text } : item
-      )
-    );
-  };
-
-  const addItem = () => {
-    const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
-    setItems([...items, { id: newId, category: '新增項目', name: '', photo: null, note: '' }]);
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  return (
-    <div className="min-h-screen bg-gray-100 pb-20 md:pb-10 app-container">
-      {/* 導覽列 */}
-      <nav className="bg-[#1e3a8a] text-white p-4 shadow-lg sticky top-0 z-50 print:hidden flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <FileText size={24} />
-          <h1 className="text-lg md:text-xl font-bold">施工紀錄系統</h1>
-        </div>
-        <button 
-          onClick={handlePrint}
-          className="bg-white text-[#1e3a8a] px-4 py-2 rounded-lg font-bold flex items-center shadow-md hover:bg-gray-100"
-        >
-          <Save size={18} className="mr-2" />
-          <span>匯出 PDF</span>
-        </button>
-      </nav>
-
-      <div className="container mx-auto p-2 md:p-6 max-w-5xl print:p-0">
-        <div className="bg-white shadow-xl rounded-lg p-4 md:p-10 print:shadow-none print:p-0 min-h-[29.7cm] flex flex-col">
-          
-          {/* 表頭區 */}
-          <div className="border-b-4 border-black pb-4 mb-8">
-            <h2 className="text-2xl md:text-4xl font-black text-center text-gray-900 mb-6 uppercase tracking-widest">工程現場施工紀錄表</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm md:text-base">
-              <div className="header-field">
-                <span className="label">工程名稱</span>
-                <input value={projectInfo.projectName} onChange={e => setProjectInfo({...projectInfo, projectName: e.target.value})} className="input-line font-bold" />
-              </div>
-              <div className="header-field">
-                <span className="label">施工地點</span>
-                <input value={projectInfo.location} onChange={e => setProjectInfo({...projectInfo, location: e.target.value})} className="input-line" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="header-field">
-                  <span className="label">記錄人員</span>
-                  <input value={projectInfo.recorder} onChange={e => setProjectInfo({...projectInfo, recorder: e.target.value})} className="input-line" />
-                </div>
-                <div className="header-field">
-                  <span className="label">承造廠商</span>
-                  <input value={projectInfo.contractor} onChange={e => setProjectInfo({...projectInfo, contractor: e.target.value})} className="input-line" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="header-field">
-                  <span className="label">施作日期</span>
-                  <input type="date" value={projectInfo.date} onChange={e => setProjectInfo({...projectInfo, date: e.target.value})} className="input-line" />
-                </div>
-                <div className="header-field">
-                  <span className="label">天氣</span>
-                  <select value={projectInfo.weather} onChange={e => setProjectInfo({...projectInfo, weather: e.target.value})} className="input-line bg-transparent">
-                    <option>晴</option><option>陰</option><option>雨</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 表格標題 */}
-          <div className="hidden md:grid print:grid grid-cols-12 bg-gray-900 text-white p-3 font-bold text-center rounded-t-lg">
-            <div className="col-span-1">項次</div>
-            <div className="col-span-5 border-l border-gray-700">紀錄項目</div>
-            <div className="col-span-6 border-l border-gray-700">現場照片 / 說明備註</div>
-          </div>
-
-          {/* 紀錄列表 */}
-          <div className="divide-y divide-gray-300 border-x border-b border-gray-300 md:border-t-0 rounded-b-lg overflow-hidden">
-            {items.map((item, index) => (
-              <div key={item.id} className="flex flex-col md:grid print:grid grid-cols-12 break-inside-avoid hover:bg-gray-50 transition-colors">
-                <div className="col-span-1 flex items-center justify-center p-2 bg-gray-50 md:bg-transparent font-mono font-bold text-gray-500 border-b md:border-b-0 border-gray-200">
-                  <span className="md:hidden mr-2">項目</span>{index + 1}
-                </div>
-                
-                <div className="col-span-5 p-4 border-l-0 md:border-l border-gray-300">
-                  <div className="text-blue-700 text-xs font-black mb-1 px-1 underline uppercase">{item.category}</div>
-                  <textarea 
-                    value={item.name} 
-                    onChange={e => {
-                      const n = [...items]; n[index].name = e.target.value; setItems(n);
-                    }}
-                    className="w-full bg-transparent border-none focus:ring-0 font-medium resize-none min-h-[60px]"
-                  />
-                </div>
-
-                <div className="col-span-6 p-4 border-l-0 md:border-l border-gray-300 space-y-3">
-                  <div className="photo-box relative w-full aspect-video bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden group">
-                    {item.photo ? (
-                      <>
-                        <img src={item.photo} alt="現場" className="w-full h-full object-cover" />
-                        <button onClick={() => removePhoto(item.id)} className="absolute top-2 right-2 bg-red-600 text-white p-1.5 rounded-full shadow-lg print:hidden"><Trash2 size={16}/></button>
-                      </>
-                    ) : (
-                      <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all print:hidden">
-                        <Camera size={40} strokeWidth={1.5} />
-                        <span className="mt-2 font-bold text-sm">點擊拍攝或上傳照片</span>
-                        <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handlePhotoUpload(item.id, e)} />
-                      </label>
-                    )}
-                    <div className="hidden print:flex w-full h-full items-center justify-center text-gray-300 font-bold">〔 未 上 傳 照 片 〕</div>
-                  </div>
-                  <textarea 
-                    value={item.note} 
-                    onChange={e => updateNote(item.id, e.target.value)}
-                    placeholder="點擊輸入備註說明..."
-                    className="w-full p-2 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-0 transition-all print:border-none print:p-0"
-                    rows={2}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <button onClick={addItem} className="w-full mt-6 py-4 border-4 border-dashed border-gray-200 text-gray-400 rounded-xl font-bold hover:border-blue-300 hover:text-blue-400 transition-all print:hidden flex items-center justify-center">
-            <Plus size={24} className="mr-2" /> 新增紀錄項目
-          </button>
-
-          <div className="mt-auto pt-10 text-[10px] text-center text-gray-400 print:text-gray-400 flex justify-between items-center px-4">
-            <span>系統識別碼: SYS-{Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
-            <span>產生時間：{new Date().toLocaleString()}</span>
-          </div>
-        </div>
-      </div>
-
-      <style>{`
-        .header-field { display: flex; flex-direction: column; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
-        .label { font-size: 0.65rem; color: #6b7280; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
-        .input-line { border: none; padding: 2px 0; font-size: 1rem; width: 100%; outline: none; }
-        .input-line:focus { color: #1e40af; }
-        
-        @media (max-width: 768px) {
-          .header-field { border-bottom: 2px solid #3b82f6; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        }
-
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>施工紀錄系統</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 載入 React 相關函式庫 -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- 載入 Babel 用於即時編譯 JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- 載入 Lucide 圖示 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
         @media print {
-          @page { size: A4; margin: 15mm; }
-          body { background: white !important; font-size: 12pt; }
-          .app-container { padding-bottom: 0 !important; }
-          input, textarea, select { border: none !important; appearance: none !important; -webkit-appearance: none; }
-          .photo-box { border: 1px solid #eee !important; }
+            @page { size: A4; margin: 10mm; }
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            .print-border-none { border: none !important; outline: none !important; }
+            .print-shadow-none { box-shadow: none !important; }
         }
-      `}</style>
-    </div>
-  );
-};
+        .input-line { border-bottom: 2px solid #e5e7eb; outline: none; transition: border-color 0.2s; }
+        .input-line:focus { border-color: #3b82f6; }
+        input[type="date"] { appearance: none; -webkit-appearance: none; }
+        /* 確保字體在不同裝置都有足夠基礎大小 */
+        html { font-size: 18px; }
+        @media (min-width: 768px) { html { font-size: 20px; } }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="root"></div>
 
-export default InspectionApp;
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const App = () => {
+            const [projectInfo, setProjectInfo] = useState({
+                projectName: 'B14A05632_機廠轉換軌標誌牌改善案',
+                location: '機廠',
+                recorder: '王大明',
+                contractor: '長德開發工程有限公司',
+                date: new Date().toISOString().split('T')[0],
+                weather: '晴',
+            });
+
+            const [items, setItems] = useState([
+                { id: 1, category: '標誌牌照片', name: '施作前(正面)', photo: null, note: '說明:應清楚看到標誌牌內容及立柱本體於照片中' },
+                { id: 2, category: '標誌牌照片', name: '施作前(反面)', photo: null, note: '說明:應清楚看到標誌牌內容及立柱本體於照片中' },
+                { id: 3, category: '標誌牌照片', name: '施作後(正面)', photo: null, note: '說明:應清楚看到標誌牌內容及立柱本體於照片中' },
+                { id: 4, category: '標誌牌照片', name: '施作後(反面)', photo: null, note: '說明:應清楚看到標誌牌內容及立柱本體於照片中' },
+            ]);
+
+            // 處理照片上傳
+            const handlePhotoUpload = (itemId, event) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setItems(prev => prev.map(item => 
+                            item.id === itemId ? { ...item, photo: reader.result } : item
+                        ));
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const removePhoto = (itemId) => {
+                setItems(prev => prev.map(item => 
+                    item.id === itemId ? { ...item, photo: null } : item
+                ));
+            };
+
+            const addItem = () => {
+                const newId = Date.now();
+                setItems([...items, { id: newId, category: '新增項目', name: '', photo: null, note: '' }]);
+            };
+
+            return (
+                <div className="pb-10">
+                    {/* 導覽列 */}
+                    <nav className="bg-blue-900 text-white p-6 shadow-lg sticky top-0 z-50 no-print flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                            <i data-lucide="file-text" className="w-8 h-8"></i>
+                            <h1 className="text-2xl font-bold">施工紀錄系統</h1>
+                        </div>
+                        <button onClick={() => window.print()} className="bg-white text-blue-900 px-6 py-3 rounded-xl font-bold shadow-md hover:bg-gray-100 flex items-center text-xl">
+                            <i data-lucide="save" className="mr-2 w-6 h-6"></i>匯出 PDF
+                        </button>
+                    </nav>
+
+                    <div className="container mx-auto p-2 md:p-6 max-w-5xl">
+                        <div className="bg-white shadow-xl rounded-lg p-6 md:p-12 print-shadow-none flex flex-col min-h-[29.7cm]">
+                            
+                            {/* 表頭區 */}
+                            <div className="border-b-4 border-black pb-6 mb-10 text-center">
+                                <h2 className="text-4xl md:text-5xl font-black mb-8 tracking-widest text-gray-900">施工紀錄表</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
+                                    <div className="flex flex-col border-b-2 border-gray-200 py-2">
+                                        <span className="text-base text-gray-500 font-bold mb-1">工程名稱</span>
+                                        <input value={projectInfo.projectName} onChange={e => setProjectInfo({...projectInfo, projectName: e.target.value})} className="bg-transparent font-bold text-xl py-1 print-border-none outline-none" />
+                                    </div>
+                                    <div className="flex flex-col border-b-2 border-gray-200 py-2">
+                                        <span className="text-base text-gray-500 font-bold mb-1">施工地點</span>
+                                        <input value={projectInfo.location} onChange={e => setProjectInfo({...projectInfo, location: e.target.value})} className="bg-transparent text-xl py-1 print-border-none outline-none" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="flex flex-col border-b-2 border-gray-200 py-2">
+                                            <span className="text-base text-gray-500 font-bold mb-1">記錄人員</span>
+                                            <input value={projectInfo.recorder} onChange={e => setProjectInfo({...projectInfo, recorder: e.target.value})} className="bg-transparent text-xl py-1 print-border-none outline-none" />
+                                        </div>
+                                        <div className="flex flex-col border-b-2 border-gray-200 py-2">
+                                            <span className="text-base text-gray-500 font-bold mb-1">承造廠商</span>
+                                            <input value={projectInfo.contractor} onChange={e => setProjectInfo({...projectInfo, contractor: e.target.value})} className="bg-transparent text-xl py-1 print-border-none outline-none" />
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="flex flex-col border-b-2 border-gray-200 py-2">
+                                            <span className="text-base text-gray-500 font-bold mb-1">施作日期</span>
+                                            <input type="date" value={projectInfo.date} onChange={e => setProjectInfo({...projectInfo, date: e.target.value})} className="bg-transparent text-xl py-1 print-border-none outline-none" />
+                                        </div>
+                                        <div className="flex flex-col border-b-2 border-gray-200 py-2">
+                                            <span className="text-base text-gray-500 font-bold mb-1">天氣</span>
+                                            <select value={projectInfo.weather} onChange={e => setProjectInfo({...projectInfo, weather: e.target.value})} className="bg-transparent text-xl py-1 print-border-none outline-none">
+                                                <option>晴</option><option>陰</option><option>雨</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 表格標題 */}
+                            <div className="hidden md:grid grid-cols-12 bg-gray-900 text-white p-4 font-bold text-center text-xl rounded-t-lg">
+                                <div className="col-span-1">項次</div>
+                                <div className="col-span-5 border-l border-gray-600">紀錄項目</div>
+                                <div className="col-span-6 border-l border-gray-600">現場照片 / 說明備註</div>
+                            </div>
+
+                            {/* 紀錄列表 */}
+                            <div className="border-2 md:border-t-0 border-gray-300 divide-y-2 divide-gray-300 rounded-b-lg overflow-hidden">
+                                {items.map((item, index) => (
+                                    <div key={item.id} className="flex flex-col md:grid grid-cols-12 break-inside-avoid">
+                                        <div className="col-span-1 flex items-center justify-center p-4 bg-gray-50 md:bg-transparent font-mono font-bold text-2xl text-gray-400">
+                                            {index + 1}
+                                        </div>
+                                        <div className="col-span-5 p-6 md:border-l-2 border-gray-300 bg-white">
+                                            <div className="text-blue-700 text-sm font-black underline mb-3 uppercase tracking-wider">{item.category}</div>
+                                            <textarea 
+                                                value={item.name} 
+                                                onChange={e => {
+                                                    const n = [...items]; n[index].name = e.target.value; setItems(n);
+                                                }}
+                                                className="w-full bg-transparent border-none focus:ring-0 text-xl font-bold resize-none print-border-none outline-none"
+                                                rows="3"
+                                            />
+                                        </div>
+                                        <div className="col-span-6 p-6 md:border-l-2 border-gray-300 space-y-4 bg-gray-50">
+                                            {/* 照片框框 - object-contain 確保不被裁切 */}
+                                            <div className="relative aspect-video bg-black border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center overflow-hidden">
+                                                {item.photo ? (
+                                                    <React.Fragment>
+                                                        <img src={item.photo} className="w-full h-full object-contain" />
+                                                        <button onClick={() => removePhoto(item.id)} className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full no-print shadow-xl">
+                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>
+                                                        </button>
+                                                    </React.Fragment>
+                                                ) : (
+                                                    <label className="flex flex-col items-center cursor-pointer text-gray-400 hover:text-blue-500 no-print p-4">
+                                                        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                                        <span className="text-lg mt-3 font-bold">點擊拍照</span>
+                                                        <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handlePhotoUpload(item.id, e)} />
+                                                    </label>
+                                                )}
+                                            </div>
+                                            <textarea 
+                                                placeholder="輸入備註說明..." 
+                                                value={item.note}
+                                                onChange={e => {
+                                                    const n = [...items]; n[index].note = e.target.value; setItems(n);
+                                                }}
+                                                className="w-full p-4 text-lg bg-white border-2 border-gray-200 rounded-lg focus:border-blue-500 outline-none print-border-none shadow-inner"
+                                                rows="2"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button onClick={addItem} className="w-full mt-8 py-5 border-4 border-dashed border-gray-300 text-gray-400 rounded-xl font-bold text-2xl hover:bg-gray-100 hover:text-blue-500 hover:border-blue-200 no-print transition-all">
+                                + 新增紀錄項目
+                            </button>
+
+                            <div className="mt-auto pt-12 text-sm text-gray-400 flex justify-between font-medium">
+                                <span>系統自動產製紀錄報告書</span>
+                                <span>製表日期與時間：{new Date().toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+        // 初始化圖示
+        setTimeout(() => {
+            if (window.lucide) window.lucide.createIcons();
+        }, 500);
+    </script>
+</body>
+</html>
