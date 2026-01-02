@@ -1,37 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Camera, FileText, Save, Upload, Trash2, Plus, MapPin, User, Calendar, Cloud } from 'lucide-react';
-
-// 模擬 API Config (實際開發時應從環境變數 process.env 讀取)
-// 這裡展示如何結構化配置，但不暴露真實 Key
-const API_CONFIG = {
-  uploadEndpoint: "https://api.your-company.com/upload",
-  apiKey: "HIDDEN_FOR_SECURITY_REASONS", // 實際部署時使用 process.env.REACT_APP_API_KEY
-};
+import React, { useState } from 'react';
+import { Camera, FileText, Save, Trash2, Plus, MapPin, User, Calendar, Cloud } from 'lucide-react';
 
 const InspectionApp = () => {
   // --- 狀態管理 ---
   const [projectInfo, setProjectInfo] = useState({
     projectName: 'B14A05632_機廠轉換軌標誌牌改善案',
     location: '機廠',
-    recorder: '王大明', // 改為記錄人員
+    recorder: '王大明',
     contractor: '長德開發工程有限公司',
     date: new Date().toISOString().split('T')[0],
     weather: '晴',
   });
 
-  // 預設檢查項目
   const [items, setItems] = useState([
     { id: 1, category: '施作前(正面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '' },
     { id: 2, category: '施作前(反面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '' },
     { id: 3, category: '施作前(反面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '' },
-    { id: 4, category: '施作後(反面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '施工架踏板未滿鋪' },
+    { id: 4, category: '施作後(反面)', name: '說明:應清楚看到標誌牌內容及立柱本體於照片中', photo: null, note: '' },
   ]);
 
-  const [isPrinting, setIsPrinting] = useState(false);
-
   // --- 功能函數 ---
-
-  // 處理照片上傳 (讀取本地檔案並轉為 Base64 預覽)
   const handlePhotoUpload = (itemId, event) => {
     const file = event.target.files[0];
     if (file) {
@@ -47,7 +35,6 @@ const InspectionApp = () => {
     }
   };
 
-  // 刪除照片
   const removePhoto = (itemId) => {
     setItems(prevItems => 
       prevItems.map(item => 
@@ -56,7 +43,6 @@ const InspectionApp = () => {
     );
   };
 
-  // 更新備註
   const updateNote = (itemId, text) => {
     setItems(prevItems => 
       prevItems.map(item => 
@@ -65,190 +51,120 @@ const InspectionApp = () => {
     );
   };
 
-  // 新增檢查項目
   const addItem = () => {
     const newId = items.length > 0 ? Math.max(...items.map(i => i.id)) + 1 : 1;
     setItems([...items, { id: newId, category: '新增項目', name: '', photo: null, note: '' }]);
   };
 
-  // 處理列印/PDF匯出
   const handlePrint = () => {
-    setIsPrinting(true);
-    setTimeout(() => {
-      window.print();
-      setIsPrinting(false);
-    }, 100);
+    window.print();
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans pb-20 md:pb-0">
-      
-      {/* --- 頂部導覽列 (列印時隱藏) --- */}
-      <nav className="bg-blue-900 text-white p-4 shadow-md print:hidden sticky top-0 z-50">
-        <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <FileText size={24} />
-            <h1 className="text-lg md:text-xl font-bold truncate">施工紀錄系統</h1>
-          </div>
-          <button 
-            onClick={handlePrint}
-            className="bg-white text-blue-900 px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex items-center hover:bg-blue-50 transition-colors text-sm md:text-base shadow-sm"
-          >
-            <Save size={18} className="mr-2" />
-            <span className="hidden md:inline">匯出 PDF 報告</span>
-            <span className="md:hidden">PDF</span>
-          </button>
+    <div className="min-h-screen bg-gray-100 pb-20 md:pb-10 app-container">
+      {/* 導覽列 */}
+      <nav className="bg-[#1e3a8a] text-white p-4 shadow-lg sticky top-0 z-50 print:hidden flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <FileText size={24} />
+          <h1 className="text-lg md:text-xl font-bold">施工紀錄系統</h1>
         </div>
+        <button 
+          onClick={handlePrint}
+          className="bg-white text-[#1e3a8a] px-4 py-2 rounded-lg font-bold flex items-center shadow-md hover:bg-gray-100"
+        >
+          <Save size={18} className="mr-2" />
+          <span>匯出 PDF</span>
+        </button>
       </nav>
 
-      {/* --- 主要內容區 --- */}
-      <div className="container mx-auto p-2 md:p-4 max-w-5xl print:p-0 print:max-w-full">
-        
-        {/* A4 紙張模擬容器 (手機版為流動佈局，桌機版/列印版為固定寬度) */}
-        <div className="bg-white shadow-sm md:shadow-lg rounded-xl p-4 md:p-8 print:shadow-none print:p-0 print:rounded-none min-h-[29.7cm]">
+      <div className="container mx-auto p-2 md:p-6 max-w-5xl print:p-0">
+        <div className="bg-white shadow-xl rounded-lg p-4 md:p-10 print:shadow-none print:p-0 min-h-[29.7cm] flex flex-col">
           
-          {/* 報告表頭 - 手機版堆疊，桌機版並排 */}
-          <div className="border-b-2 border-gray-800 pb-4 mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-4">工程現場施工紀錄表</h2>
+          {/* 表頭區 */}
+          <div className="border-b-4 border-black pb-4 mb-8">
+            <h2 className="text-2xl md:text-4xl font-black text-center text-gray-900 mb-6 uppercase tracking-widest">工程現場施工紀錄表</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 text-sm mt-4">
-              <div className="flex flex-col">
-                <span className="text-gray-500 text-xs flex items-center"><FileText size={12} className="mr-1"/> 工程名稱</span>
-                <input 
-                  value={projectInfo.projectName}
-                  onChange={(e) => setProjectInfo({...projectInfo, projectName: e.target.value})}
-                  className="font-bold text-base md:text-lg border-b border-gray-300 focus:outline-none focus:border-blue-500 print:border-none w-full py-1" 
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm md:text-base">
+              <div className="header-field">
+                <span className="label">工程名稱</span>
+                <input value={projectInfo.projectName} onChange={e => setProjectInfo({...projectInfo, projectName: e.target.value})} className="input-line font-bold" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-gray-500 text-xs flex items-center"><MapPin size={12} className="mr-1"/> 施工地點</span>
-                <input 
-                  value={projectInfo.location}
-                  onChange={(e) => setProjectInfo({...projectInfo, location: e.target.value})}
-                  className="border-b border-gray-300 focus:outline-none focus:border-blue-500 print:border-none w-full py-1" 
-                />
+              <div className="header-field">
+                <span className="label">施工地點</span>
+                <input value={projectInfo.location} onChange={e => setProjectInfo({...projectInfo, location: e.target.value})} className="input-line" />
               </div>
-              
-              <div className="flex flex-row space-x-4">
-                <div className="flex flex-col w-1/2">
-                  <span className="text-gray-500 text-xs flex items-center"><User size={12} className="mr-1"/> 記錄人員</span>
-                  <input 
-                    value={projectInfo.recorder}
-                    onChange={(e) => setProjectInfo({...projectInfo, recorder: e.target.value})}
-                    className="border-b border-gray-300 focus:outline-none focus:border-blue-500 print:border-none w-full py-1" 
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="header-field">
+                  <span className="label">記錄人員</span>
+                  <input value={projectInfo.recorder} onChange={e => setProjectInfo({...projectInfo, recorder: e.target.value})} className="input-line" />
                 </div>
-                <div className="flex flex-col w-1/2">
-                  <span className="text-gray-500 text-xs flex items-center"><User size={12} className="mr-1"/> 承造廠商</span>
-                  <input 
-                    value={projectInfo.contractor}
-                    onChange={(e) => setProjectInfo({...projectInfo, contractor: e.target.value})}
-                    className="border-b border-gray-300 focus:outline-none focus:border-blue-500 print:border-none w-full py-1" 
-                  />
+                <div className="header-field">
+                  <span className="label">承造廠商</span>
+                  <input value={projectInfo.contractor} onChange={e => setProjectInfo({...projectInfo, contractor: e.target.value})} className="input-line" />
                 </div>
               </div>
-              
-              <div className="flex flex-row space-x-4">
-                <div className="flex flex-col w-1/2">
-                  <span className="text-gray-500 text-xs flex items-center"><Calendar size={12} className="mr-1"/> 施作日期</span>
-                  <input 
-                    type="date"
-                    value={projectInfo.date}
-                    onChange={(e) => setProjectInfo({...projectInfo, date: e.target.value})}
-                    className="border-b border-gray-300 focus:outline-none focus:border-blue-500 print:border-none w-full py-1" 
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="header-field">
+                  <span className="label">施作日期</span>
+                  <input type="date" value={projectInfo.date} onChange={e => setProjectInfo({...projectInfo, date: e.target.value})} className="input-line" />
                 </div>
-                <div className="flex flex-col w-1/2">
-                  <span className="text-gray-500 text-xs flex items-center"><Cloud size={12} className="mr-1"/> 天氣</span>
-                  <select 
-                    value={projectInfo.weather}
-                    onChange={(e) => setProjectInfo({...projectInfo, weather: e.target.value})}
-                    className="border-b border-gray-300 focus:outline-none focus:border-blue-500 bg-transparent print:appearance-none w-full py-1" 
-                  >
-                    <option value="晴">晴</option>
-                    <option value="陰">陰</option>
-                    <option value="雨">雨</option>
+                <div className="header-field">
+                  <span className="label">天氣</span>
+                  <select value={projectInfo.weather} onChange={e => setProjectInfo({...projectInfo, weather: e.target.value})} className="input-line bg-transparent">
+                    <option>晴</option><option>陰</option><option>雨</option>
                   </select>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 列表標題 (手機版隱藏，桌機/列印版顯示) */}
-          <div className="hidden md:grid print:grid grid-cols-12 gap-2 text-sm font-bold bg-gray-100 p-2 rounded print:bg-gray-200 mb-4">
-            <div className="col-span-1 text-center">項次</div>
-            <div className="col-span-5">紀錄項目</div>
-            <div className="col-span-6 text-center">現場照片/備註</div>
+          {/* 表格標題 */}
+          <div className="hidden md:grid print:grid grid-cols-12 bg-gray-900 text-white p-3 font-bold text-center rounded-t-lg">
+            <div className="col-span-1">項次</div>
+            <div className="col-span-5 border-l border-gray-700">紀錄項目</div>
+            <div className="col-span-6 border-l border-gray-700">現場照片 / 說明備註</div>
           </div>
 
-          {/* 檢查列表 */}
-          <div className="space-y-4 md:space-y-0">
+          {/* 紀錄列表 */}
+          <div className="divide-y divide-gray-300 border-x border-b border-gray-300 md:border-t-0 rounded-b-lg overflow-hidden">
             {items.map((item, index) => (
-              <div 
-                key={item.id} 
-                // 手機版: Flex Column (卡片式), 桌機/列印版: Grid (表格)
-                className="flex flex-col md:grid print:grid grid-cols-12 gap-4 border border-gray-200 md:border-0 md:border-b md:border-gray-200 p-4 md:p-0 md:pb-4 items-start break-inside-avoid bg-white rounded-lg shadow-sm md:shadow-none"
-              >
-                {/* 序號 - 手機版顯示為標籤 */}
-                <div className="col-span-1 text-center py-0 md:py-2 font-mono text-gray-500 flex justify-between md:block items-center mb-2 md:mb-0">
-                  <span className="md:hidden text-xs font-bold bg-gray-100 px-2 py-1 rounded">項目 {index + 1}</span>
-                  <span className="hidden md:block">{index + 1}</span>
+              <div key={item.id} className="flex flex-col md:grid print:grid grid-cols-12 break-inside-avoid hover:bg-gray-50 transition-colors">
+                <div className="col-span-1 flex items-center justify-center p-2 bg-gray-50 md:bg-transparent font-mono font-bold text-gray-500 border-b md:border-b-0 border-gray-200">
+                  <span className="md:hidden mr-2">項目</span>{index + 1}
                 </div>
-
-                {/* 項目名稱 */}
-                <div className="col-span-5 py-0 md:py-2 w-full">
-                  <div className="text-xs text-blue-600 font-bold mb-1">{item.category}</div>
-                  <input 
-                    value={item.name}
-                    onChange={(e) => {
-                      const newItems = [...items];
-                      newItems[index].name = e.target.value;
-                      setItems(newItems);
+                
+                <div className="col-span-5 p-4 border-l-0 md:border-l border-gray-300">
+                  <div className="text-blue-700 text-xs font-black mb-1 px-1 underline uppercase">{item.category}</div>
+                  <textarea 
+                    value={item.name} 
+                    onChange={e => {
+                      const n = [...items]; n[index].name = e.target.value; setItems(n);
                     }}
-                    placeholder="輸入紀錄項目..."
-                    className="w-full bg-transparent focus:outline-none focus:border-b focus:border-blue-500 font-medium py-1"
+                    className="w-full bg-transparent border-none focus:ring-0 font-medium resize-none min-h-[60px]"
                   />
                 </div>
 
-                {/* 照片與備註區 */}
-                <div className="col-span-6 space-y-2 w-full mt-2 md:mt-0">
-                  {/* 照片預覽與上傳 */}
-                  <div className="relative w-full h-56 md:h-48 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden group hover:border-blue-400 transition-colors">
+                <div className="col-span-6 p-4 border-l-0 md:border-l border-gray-300 space-y-3">
+                  <div className="photo-box relative w-full aspect-video bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden group">
                     {item.photo ? (
                       <>
-                        <img src={item.photo} alt="現場照片" className="w-full h-full object-cover" />
-                        <button 
-                          onClick={() => removePhoto(item.id)}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-2 md:p-1 rounded-full shadow-lg opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity print:hidden"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <img src={item.photo} alt="現場" className="w-full h-full object-cover" />
+                        <button onClick={() => removePhoto(item.id)} className="absolute top-2 right-2 bg-red-600 text-white p-1.5 rounded-full shadow-lg print:hidden"><Trash2 size={16}/></button>
                       </>
                     ) : (
-                      <label className="cursor-pointer flex flex-col items-center justify-center w-full h-full text-gray-400 hover:text-blue-500 hover:bg-blue-50 transition-colors print:hidden active:bg-blue-100">
-                        <Camera size={32} />
-                        <span className="text-sm mt-2 font-medium">點擊拍照</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          capture="environment" // 手機優先使用後鏡頭
-                          className="hidden" 
-                          onChange={(e) => handlePhotoUpload(item.id, e)}
-                        />
+                      <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all print:hidden">
+                        <Camera size={40} strokeWidth={1.5} />
+                        <span className="mt-2 font-bold text-sm">點擊拍攝或上傳照片</span>
+                        <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handlePhotoUpload(item.id, e)} />
                       </label>
                     )}
-                    {/* 列印時若無照片顯示提示 */}
-                    <div className="hidden print:flex w-full h-full items-center justify-center text-gray-300 text-xs">
-                      {!item.photo && "無照片"}
-                    </div>
+                    <div className="hidden print:flex w-full h-full items-center justify-center text-gray-300 font-bold">〔 未 上 傳 照 片 〕</div>
                   </div>
-
-                  {/* 備註輸入 */}
                   <textarea 
-                    value={item.note}
-                    onChange={(e) => updateNote(item.id, e.target.value)}
-                    placeholder="輸入說明或備註..."
-                    className="w-full text-sm md:text-xs p-3 md:p-2 border rounded resize-none focus:ring-1 focus:ring-blue-500 focus:outline-none print:border-none print:p-0 print:text-sm bg-gray-50 md:bg-white"
+                    value={item.note} 
+                    onChange={e => updateNote(item.id, e.target.value)}
+                    placeholder="點擊輸入備註說明..."
+                    className="w-full p-2 text-sm border border-gray-200 rounded bg-gray-50 focus:bg-white focus:border-blue-400 focus:ring-0 transition-all print:border-none print:p-0"
                     rows={2}
                   />
                 </div>
@@ -256,32 +172,33 @@ const InspectionApp = () => {
             ))}
           </div>
 
-          {/* 新增項目按鈕 (列印時隱藏) */}
-          <button 
-            onClick={addItem}
-            className="w-full mt-6 py-4 border-2 border-dashed border-gray-300 text-gray-500 rounded-lg hover:border-blue-500 hover:text-blue-500 transition-colors flex items-center justify-center print:hidden active:bg-gray-50"
-          >
-            <Plus size={20} className="mr-2" /> 新增紀錄項目
+          <button onClick={addItem} className="w-full mt-6 py-4 border-4 border-dashed border-gray-200 text-gray-400 rounded-xl font-bold hover:border-blue-300 hover:text-blue-400 transition-all print:hidden flex items-center justify-center">
+            <Plus size={24} className="mr-2" /> 新增紀錄項目
           </button>
 
-          
-          <div className="mt-8 pt-4 border-t border-gray-200 text-xs text-center text-gray-400 print:text-gray-600">
-            表單產生時間：{new Date().toLocaleString()} | 系統版本：v1.4.0 (Mobile Optimized)
+          <div className="mt-auto pt-10 text-[10px] text-center text-gray-400 print:text-gray-400 flex justify-between items-center px-4">
+            <span>系統識別碼: SYS-{Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+            <span>產生時間：{new Date().toLocaleString()}</span>
           </div>
         </div>
       </div>
 
-      {/* CSS 用於隱藏列印時不必要的元素 */}
       <style>{`
+        .header-field { display: flex; flex-direction: column; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+        .label { font-size: 0.65rem; color: #6b7280; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
+        .input-line { border: none; padding: 2px 0; font-size: 1rem; width: 100%; outline: none; }
+        .input-line:focus { color: #1e40af; }
+        
+        @media (max-width: 768px) {
+          .header-field { border-bottom: 2px solid #3b82f6; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        }
+
         @media print {
-          @page {
-            size: A4;
-            margin: 1cm;
-          }
-          body {
-            background: white;
-            -webkit-print-color-adjust: exact;
-          }
+          @page { size: A4; margin: 15mm; }
+          body { background: white !important; font-size: 12pt; }
+          .app-container { padding-bottom: 0 !important; }
+          input, textarea, select { border: none !important; appearance: none !important; -webkit-appearance: none; }
+          .photo-box { border: 1px solid #eee !important; }
         }
       `}</style>
     </div>
